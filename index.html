@@ -5,51 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Numerology Calculator</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: radial-gradient(1200px 600px at 20% 0%, #fff6d6 0%, #f6f8f7 40%, #f2f5f4 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
-            padding: 20px;
+            align-items: flex-start;
+            padding: 48px 20px 80px;
+            color: #0f172a;
         }
 
-        .container {
-            max-width: 900px;
-            width: 100%;
-        }
+        .container { max-width: 1120px; width: 100%; }
 
         .header {
             text-align: center;
-            color: white;
-            margin-bottom: 30px;
-            animation: fadeInDown 0.8s ease;
+            margin-bottom: 28px;
+            animation: fadeInDown 0.6s ease;
         }
 
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
         }
-
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
+        .brand-icon { filter: drop-shadow(0 1px 0 rgba(0,0,0,0.04)); }
+        .title { letter-spacing: .2px; }
+        .subtitle { margin-top: 6px; opacity: .75; font-weight: 500; }
 
         .card {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            animation: fadeInUp 0.8s ease;
+            background: linear-gradient(180deg, #ffffff 0%, #fbfcfb 70%, #f7f9f8 100%);
+            border-radius: 16px;
+            padding: 28px;
+            border: 1px solid rgba(15,23,42,0.06);
+            box-shadow: 0 8px 24px rgba(2,8,20,0.06), 0 1px 0 rgba(2,8,20,0.04) inset;
+            animation: fadeInUp 0.6s ease;
         }
 
         .form-group {
@@ -85,46 +78,17 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        .radio-group {
-            display: flex;
-            gap: 20px;
-            margin-top: 10px;
-        }
+        .radio-group { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 10px; }
+        .seg { position: relative; border: 1px solid rgba(15,23,42,.08); border-radius: 12px; padding: 14px 16px; background: #fff; cursor: pointer; font-weight: 600; text-align: center; }
+        .seg input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+        .seg.active { outline: 2px solid rgba(15,115,95,0.25); background: linear-gradient(180deg,#ffffff 0%,#eef7f3 100%); }
 
-        .radio-option {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-        }
-
-        .radio-option input[type="radio"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
+        .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
+        .btn { padding: 14px 16px; border: 1px solid rgba(15,23,42,.06); border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
+        .btn-primary { background: #0E5B4D; color: #fff; border-color: #0E5B4D; }
+        .btn-secondary { background: #f6f7f7; color: #0f172a; }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(2,8,20,.08); }
+        .btn:active { transform: translateY(0); box-shadow: none; }
 
         .results {
             margin-top: 30px;
@@ -136,36 +100,13 @@
             display: block;
         }
 
-        .result-header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
+        .result-header { margin: 24px 0; }
+        .result-banner { display:flex; align-items:center; justify-content: space-between; gap:16px; padding:16px 18px; border:1px solid rgba(15,23,42,.06); background: linear-gradient(180deg,#ffffff 0%,#fffaf0 100%); border-radius:12px; }
+        .result-meta { font-weight: 700; }
+        .result-meta small { display:block; opacity:.7; font-weight: 600; }
 
-        .result-header h2 {
-            color: #667eea;
-            font-size: 1.8em;
-            margin-bottom: 5px;
-        }
-
-        .result-header p {
-            color: #666;
-            font-size: 0.95em;
-        }
-
-        .numbers-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .number-card {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
+        .numbers-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-bottom: 22px; }
+        .number-card { background: linear-gradient(180deg,#ffffff 0%,#f3f6f9 100%); padding:18px; border-radius:12px; border:1px solid rgba(15,23,42,.06); text-align:center; }
 
         .number-card:hover {
             transform: translateY(-5px);
@@ -185,10 +126,7 @@
             color: #333;
         }
 
-        .loshu-section {
-            margin-top: 30px;
-            text-align: center;
-        }
+        .loshu-section { margin-top: 30px; }
 
         .loshu-section h3 {
             color: #667eea;
@@ -196,42 +134,11 @@
             margin-bottom: 20px;
         }
 
-        .loshu-grid {
-            display: inline-grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-
-        .loshu-cell {
-            width: 80px;
-            height: 80px;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2em;
-            font-weight: bold;
-            color: #667eea;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-            word-break: break-all;
-            padding: 5px;
-        }
-
-        .loshu-cell.present {
-            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
-            color: #1a5928;
-        }
-
-        .loshu-cell.missing {
-            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-            color: #d32f2f;
-            opacity: 0.6;
-        }
+        .loshu-grid { display: grid; grid-template-columns: repeat(3, 96px); justify-content: center; gap: 14px; padding: 26px; background: linear-gradient(180deg,#ffffff 0%,#fbfbf6 100%); border:1px solid rgba(15,23,42,.06); border-radius:16px; }
+        .loshu-cell { position:relative; width:96px; height:96px; display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:800; color:#475569; border-radius:12px; border:1px solid rgba(15,23,42,.08); background:#fff; }
+        .loshu-cell.present { background: linear-gradient(180deg,#fff 0%,#fffaf0 100%); color:#9a6b00; border-color: #f1c663; box-shadow: inset 0 0 0 2px #f1c663; }
+        .loshu-cell.missing { opacity: .55; }
+        .loshu-count { position:absolute; right:8px; top:6px; font-size:12px; font-weight:700; opacity:.7; }
 
         .loshu-cell:hover {
             transform: scale(1.1);
@@ -741,8 +648,11 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Numerology Calculator</h1>
-            <p>Discover Your Numerological Profile</p>
+            <div class="brand">
+                <span class="brand-icon">✨</span>
+                <h1 class="title">Numerology Calculator</h1>
+            </div>
+            <p class="subtitle">Discover the hidden patterns in your numbers and unlock insights about your personality, life path, and destiny</p>
         </div>
 
         <div class="card">
@@ -760,26 +670,39 @@
                 <div class="form-group">
                     <label>Gender</label>
                     <div class="radio-group">
-                        <div class="radio-option">
+                        <label class="seg" id="segMale">
                             <input type="radio" id="male" name="gender" value="male" required>
-                            <label for="male" style="margin: 0;">Male</label>
-                        </div>
-                        <div class="radio-option">
+                            ♂ Male
+                        </label>
+                        <label class="seg" id="segFemale">
                             <input type="radio" id="female" name="gender" value="female" required>
-                            <label for="female" style="margin: 0;">Female</label>
-                        </div>
+                            ♀ Female
+                        </label>
                     </div>
                 </div>
 
-                <button type="submit" class="btn">Calculate My Numbers</button>
+                <div class="actions">
+                    <button type="button" id="resetBtn" class="btn btn-secondary">Reset</button>
+                    <button type="submit" class="btn btn-primary">Calculate</button>
+                </div>
             </form>
 
             <div class="error" id="error"></div>
 
             <div class="results" id="results">
                 <div class="result-header">
-                    <h2 id="resultName"></h2>
-                    <p id="resultDob"></p>
+                    <div class="result-banner">
+                        <div class="result-meta">
+                            <div id="resultName"></div>
+                            <small id="resultDob"></small>
+                        </div>
+                        <div class="result-actions">
+                            <!-- purely visual placeholders to match layout; functionality unchanged -->
+                            <button type="button" class="btn btn-secondary" disabled>Copy JSON</button>
+                            <button type="button" class="btn btn-secondary" disabled>Export PDF</button>
+                            <button type="button" class="btn btn-secondary" id="newReadingBtn">New Reading</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="numbers-grid">
@@ -943,7 +866,15 @@
                             } else {
                                 cellDiv.classList.add('missing');
                             }
-                            cellDiv.textContent = cell.value;
+                            // Visual: show base number and count badge (xN)
+                            const base = String(cell.value).charAt(0);
+                            cellDiv.textContent = base;
+                            if (cell.count && cell.count > 1) {
+                                const badge = document.createElement('span');
+                                badge.className = 'loshu-count';
+                                badge.textContent = `×${cell.count}`;
+                                cellDiv.appendChild(badge);
+                            }
                             loshuGrid.appendChild(cellDiv);
                         });
                     });
@@ -1270,6 +1201,31 @@
                 errorDiv.textContent = 'An error occurred. Please try again.';
                 errorDiv.classList.add('show');
             }
+            // toggle gender segmented visuals
+            const male = document.getElementById('male');
+            const female = document.getElementById('female');
+            const segMale = document.getElementById('segMale');
+            const segFemale = document.getElementById('segFemale');
+            function syncSegs(){
+                segMale.classList.toggle('active', male.checked);
+                segFemale.classList.toggle('active', female.checked);
+            }
+            male.addEventListener('change', syncSegs);
+            female.addEventListener('change', syncSegs);
+            syncSegs();
+
+            // reset button visual behavior only
+            const resetBtn = document.getElementById('resetBtn');
+            const newReadingBtn = document.getElementById('newReadingBtn');
+            function resetForm(){
+                document.getElementById('numerologyForm').reset();
+                document.getElementById('results').classList.remove('show');
+                document.getElementById('error').classList.remove('show');
+                syncSegs();
+                window.scrollTo({top:0, behavior:'smooth'});
+            }
+            resetBtn.addEventListener('click', resetForm);
+            if (newReadingBtn) newReadingBtn.addEventListener('click', resetForm);
         });
     </script>
 </body>
