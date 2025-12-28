@@ -720,19 +720,179 @@ async function exportToPDF() {
         doc.text(data.neutral_numbers.join(', ') || 'None', 70, yPos);
         yPos += 15;
 
-        // Check if we need a new page
-        if (yPos > 250) {
+        // Loshu Grid Section
+        if (yPos > 220) {
             doc.addPage();
             yPos = 20;
         }
 
-        // Remedies Part 1
-        if (data.remedies_part1 && data.remedies_part1.length > 0) {
-            doc.setFontSize(14);
-            doc.setTextColor(102, 126, 234);
-            doc.text('Remedies - Part 1', 20, yPos);
-            yPos += 10;
+        doc.setFontSize(14);
+        doc.setTextColor(102, 126, 234);
+        doc.text('Your Personalized Loshu Grid', 20, yPos);
+        yPos += 12;
 
+        // Draw Loshu Grid as a table
+        if (data.loshu_grid) {
+            const gridData = [];
+            data.loshu_grid.forEach(row => {
+                const rowData = row.map(cell => {
+                    if (cell.present) {
+                        return cell.count > 1 ? `${cell.value.charAt(0)} (×${cell.count})` : cell.value.toString();
+                    }
+                    return cell.value.toString();
+                });
+                gridData.push(rowData);
+            });
+
+            doc.autoTable({
+                startY: yPos,
+                body: gridData,
+                theme: 'grid',
+                styles: {
+                    fontSize: 16,
+                    cellWidth: 20,
+                    cellPadding: 8,
+                    halign: 'center',
+                    valign: 'middle',
+                    fontStyle: 'bold'
+                },
+                columnStyles: {
+                    0: { cellWidth: 20 },
+                    1: { cellWidth: 20 },
+                    2: { cellWidth: 20 }
+                },
+                margin: { left: 75 },
+                didParseCell: function(data) {
+                    const rowIndex = data.row.index;
+                    const colIndex = data.column.index;
+                    const cell = doc.internal.lastAutoTable ?
+                        (gridData[rowIndex] && gridData[rowIndex][colIndex]) : '';
+
+                    // Check if cell is present (has × or length > 1)
+                    if (cell && (cell.includes('×') || cell.length > 1)) {
+                        data.cell.styles.fillColor = [255, 250, 240];
+                        data.cell.styles.textColor = [154, 107, 0];
+                    } else {
+                        data.cell.styles.fillColor = [245, 245, 245];
+                        data.cell.styles.textColor = [150, 150, 150];
+                    }
+                }
+            });
+
+            yPos = doc.lastAutoTable.finalY + 10;
+        }
+
+        // Present and Missing Numbers
+        doc.setFontSize(11);
+        doc.setTextColor(75, 175, 80);
+        doc.text('Numbers Present in Your Life:', 20, yPos);
+        doc.setTextColor(0, 0, 0);
+        doc.text(data.present_numbers.join(', '), 90, yPos);
+        yPos += 8;
+
+        if (data.missing_numbers.length > 0) {
+            doc.setTextColor(244, 67, 54);
+            doc.text('Missing Numbers:', 20, yPos);
+            doc.setTextColor(0, 0, 0);
+            doc.text(data.missing_numbers.join(', '), 90, yPos);
+            yPos += 15;
+        }
+
+        // Number Compatibility Section
+        if (yPos > 200) {
+            doc.addPage();
+            yPos = 20;
+        }
+
+        doc.setFontSize(14);
+        doc.setTextColor(102, 126, 234);
+        doc.text('Number Compatibility', 20, yPos);
+        yPos += 12;
+
+        // Driver Compatibility
+        if (data.driver_compatibility) {
+            doc.setFontSize(12);
+            doc.setTextColor(102, 126, 234);
+            doc.text(`Driver Number ${data.driver}`, 20, yPos);
+            yPos += 6;
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.setFont(undefined, 'italic');
+            doc.text(data.driver_compatibility.planet || '', 20, yPos);
+            doc.setFont(undefined, 'normal');
+            yPos += 8;
+
+            doc.setFontSize(10);
+            doc.setTextColor(75, 175, 80);
+            doc.text('Friends:', 25, yPos);
+            doc.setTextColor(0, 0, 0);
+            doc.text(data.driver_compatibility.friends_raw || '', 50, yPos);
+            yPos += 6;
+
+            doc.setTextColor(244, 67, 54);
+            doc.text('Non-Friends:', 25, yPos);
+            doc.setTextColor(0, 0, 0);
+            doc.text(data.driver_compatibility.non_friends_raw || 'None', 55, yPos);
+            yPos += 6;
+
+            doc.setTextColor(255, 152, 0);
+            doc.text('Neutral:', 25, yPos);
+            doc.setTextColor(0, 0, 0);
+            doc.text(data.driver_compatibility.neutral_raw || '', 50, yPos);
+            yPos += 12;
+        }
+
+        // Conductor Compatibility
+        if (data.conductor_compatibility) {
+            doc.setFontSize(12);
+            doc.setTextColor(102, 126, 234);
+            doc.text(`Conductor Number ${data.conductor}`, 20, yPos);
+            yPos += 6;
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.setFont(undefined, 'italic');
+            doc.text(data.conductor_compatibility.planet || '', 20, yPos);
+            doc.setFont(undefined, 'normal');
+            yPos += 8;
+
+            doc.setFontSize(10);
+            doc.setTextColor(75, 175, 80);
+            doc.text('Friends:', 25, yPos);
+            doc.setTextColor(0, 0, 0);
+            doc.text(data.conductor_compatibility.friends_raw || '', 50, yPos);
+            yPos += 6;
+
+            doc.setTextColor(244, 67, 54);
+            doc.text('Non-Friends:', 25, yPos);
+            doc.setTextColor(0, 0, 0);
+            doc.text(data.conductor_compatibility.non_friends_raw || 'None', 55, yPos);
+            yPos += 6;
+
+            doc.setTextColor(255, 152, 0);
+            doc.text('Neutral:', 25, yPos);
+            doc.setTextColor(0, 0, 0);
+            doc.text(data.conductor_compatibility.neutral_raw || '', 50, yPos);
+            yPos += 15;
+        }
+
+        // Remedies Part 1
+        if (yPos > 230) {
+            doc.addPage();
+            yPos = 20;
+        }
+
+        doc.setFontSize(14);
+        doc.setTextColor(102, 126, 234);
+        doc.text('Remedies for Missing Numbers', 20, yPos);
+        yPos += 8;
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'italic');
+        doc.setTextColor(100, 100, 100);
+        doc.text('Part 1: Based on your Loshu Grid', 20, yPos);
+        doc.setFont(undefined, 'normal');
+        yPos += 10;
+
+        if (data.remedies_part1 && data.remedies_part1.length > 0) {
             doc.setFontSize(10);
             doc.setTextColor(0, 0, 0);
 
@@ -743,14 +903,108 @@ async function exportToPDF() {
                 }
 
                 doc.setFont(undefined, 'bold');
-                doc.text(`• ${remedy.condition}`, 20, yPos);
-                yPos += 6;
+                doc.setTextColor(211, 47, 47);
+                const conditionText = `If ${remedy.condition}`.toUpperCase();
+                doc.text(conditionText, 20, yPos);
+                yPos += 5;
                 doc.setFont(undefined, 'normal');
+                doc.setTextColor(0, 0, 0);
                 const remedyLines = doc.splitTextToSize(remedy.remedy, 170);
-                doc.text(remedyLines, 25, yPos);
-                yPos += (remedyLines.length * 5) + 5;
+                doc.text(remedyLines, 20, yPos);
+                yPos += (remedyLines.length * 5) + 8;
             });
-            yPos += 5;
+        } else {
+            doc.setTextColor(0, 105, 92);
+            doc.text('No missing numbers! Your Loshu Grid is complete.', 20, yPos);
+            yPos += 10;
+        }
+
+        // Remedies Part 2
+        if (yPos > 230) {
+            doc.addPage();
+            yPos = 20;
+        }
+
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'italic');
+        doc.setTextColor(100, 100, 100);
+        doc.text('Part 2: Yantra-Based Remedies', 20, yPos);
+        doc.setFont(undefined, 'normal');
+        yPos += 10;
+
+        if (data.remedies_part2 && data.remedies_part2.length > 0) {
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+
+            data.remedies_part2.forEach(remedy => {
+                if (yPos > 270) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(211, 47, 47);
+                doc.text(remedy.remedy.toUpperCase(), 20, yPos);
+                yPos += 5;
+                doc.setFont(undefined, 'normal');
+                doc.setTextColor(0, 0, 0);
+                const conditionLines = doc.splitTextToSize(`Condition: ${remedy.condition}`, 170);
+                doc.text(conditionLines, 20, yPos);
+                yPos += (conditionLines.length * 5) + 8;
+            });
+        } else {
+            doc.setTextColor(0, 105, 92);
+            doc.text('No Yantra-based remedies applicable.', 20, yPos);
+            yPos += 10;
+        }
+
+        // Remedies Part 3
+        if (yPos > 200) {
+            doc.addPage();
+            yPos = 20;
+        }
+
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'italic');
+        doc.setTextColor(100, 100, 100);
+        doc.text('Part 3: Planet-Based Remedies (Tabular Format)', 20, yPos);
+        doc.setFont(undefined, 'normal');
+        yPos += 10;
+
+        if (data.remedies_part3 && data.remedies_part3.length > 0) {
+            const remediesTableData = data.remedies_part3.map(item => [
+                item.number.toString(),
+                item.planet,
+                item.remedies.join('\n• ')
+            ]);
+
+            doc.autoTable({
+                startY: yPos,
+                head: [['No.', 'Planet', 'Remedy / Action']],
+                body: remediesTableData,
+                theme: 'striped',
+                headStyles: {
+                    fillColor: [102, 126, 234],
+                    fontSize: 10,
+                    fontStyle: 'bold'
+                },
+                columnStyles: {
+                    0: { cellWidth: 20, halign: 'center', fontStyle: 'bold', textColor: [102, 126, 234] },
+                    1: { cellWidth: 35, fontStyle: 'bold' },
+                    2: { cellWidth: 125 }
+                },
+                styles: {
+                    fontSize: 9,
+                    cellPadding: 5
+                },
+                margin: { left: 20, right: 20 }
+            });
+
+            yPos = doc.lastAutoTable.finalY + 15;
+        } else {
+            doc.setTextColor(0, 105, 92);
+            doc.text('No missing numbers! No planet-based remedies needed.', 20, yPos);
+            yPos += 15;
         }
 
         // Luck Factors
