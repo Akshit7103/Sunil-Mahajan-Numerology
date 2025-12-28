@@ -1201,76 +1201,90 @@ async function exportToPDF() {
             doc.text('First Name: ' + data.name_analysis.first_name + ' = ' + data.name_analysis.first_name_value, 20, yPos);
             yPos += 8;
             doc.text('Full Name: ' + data.name_analysis.full_name + ' = ' + data.name_analysis.full_name_value, 20, yPos);
-            yPos += 15;
+            yPos += 12;
 
-            // Followed rules
+            // Followed rules - using table format for consistent rendering
             if (data.name_analysis.followed_rules && data.name_analysis.followed_rules.length > 0) {
-                doc.setFontSize(11);
+                if (yPos > 230) {
+                    doc.addPage();
+                    yPos = 20;
+                }
+
+                doc.setFontSize(12);
                 doc.setFont(undefined, 'bold');
                 doc.setTextColor(75, 175, 80);
                 doc.text('Rules Followed:', 20, yPos);
                 doc.setFont(undefined, 'normal');
                 yPos += 8;
 
-                doc.setFontSize(10);
-                doc.setTextColor(0, 0, 0);
-                data.name_analysis.followed_rules.forEach(rule => {
-                    if (yPos > 265) {
-                        doc.addPage();
-                        yPos = 20;
+                const followedData = data.name_analysis.followed_rules.map(rule => [rule.description]);
+
+                doc.autoTable({
+                    startY: yPos,
+                    body: followedData,
+                    theme: 'plain',
+                    styles: {
+                        fontSize: 10,
+                        cellPadding: 2,
+                        textColor: [0, 0, 0]
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 165 }
+                    },
+                    margin: { left: 25 },
+                    didDrawCell: function(data) {
+                        // Draw bullet point before each row
+                        if (data.section === 'body' && data.column.index === 0) {
+                            doc.setFontSize(10);
+                            doc.setTextColor(0, 0, 0);
+                            doc.text('-', data.cell.x - 5, data.cell.y + 4);
+                        }
                     }
-                    // Wrap text manually if needed
-                    const maxWidth = 165;
-                    const textLines = doc.splitTextToSize(rule.description, maxWidth - 5);
-
-                    // Draw bullet point
-                    doc.text('-', 23, yPos);
-
-                    // Draw text lines
-                    textLines.forEach((line, index) => {
-                        doc.text(line, 28, yPos + (index * 5));
-                    });
-
-                    yPos += (textLines.length * 5) + 3;
                 });
-                yPos += 6;
+
+                yPos = doc.lastAutoTable.finalY + 10;
             }
 
-            // Contradicted rules
+            // Contradicted rules - using table format for consistent rendering
             if (data.name_analysis.contradicted_rules && data.name_analysis.contradicted_rules.length > 0) {
-                if (yPos > 240) {
+                if (yPos > 230) {
                     doc.addPage();
                     yPos = 20;
                 }
 
-                doc.setFontSize(11);
+                doc.setFontSize(12);
                 doc.setFont(undefined, 'bold');
                 doc.setTextColor(244, 67, 54);
                 doc.text('Rules Contradicted:', 20, yPos);
                 doc.setFont(undefined, 'normal');
                 yPos += 8;
 
-                doc.setFontSize(10);
-                doc.setTextColor(0, 0, 0);
-                data.name_analysis.contradicted_rules.forEach(rule => {
-                    if (yPos > 265) {
-                        doc.addPage();
-                        yPos = 20;
+                const contradictedData = data.name_analysis.contradicted_rules.map(rule => [rule.description]);
+
+                doc.autoTable({
+                    startY: yPos,
+                    body: contradictedData,
+                    theme: 'plain',
+                    styles: {
+                        fontSize: 10,
+                        cellPadding: 2,
+                        textColor: [0, 0, 0]
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 165 }
+                    },
+                    margin: { left: 25 },
+                    didDrawCell: function(data) {
+                        // Draw bullet point before each row
+                        if (data.section === 'body' && data.column.index === 0) {
+                            doc.setFontSize(10);
+                            doc.setTextColor(0, 0, 0);
+                            doc.text('-', data.cell.x - 5, data.cell.y + 4);
+                        }
                     }
-                    // Wrap text manually if needed
-                    const maxWidth = 165;
-                    const textLines = doc.splitTextToSize(rule.description, maxWidth - 5);
-
-                    // Draw bullet point
-                    doc.text('-', 23, yPos);
-
-                    // Draw text lines
-                    textLines.forEach((line, index) => {
-                        doc.text(line, 28, yPos + (index * 5));
-                    });
-
-                    yPos += (textLines.length * 5) + 3;
                 });
+
+                yPos = doc.lastAutoTable.finalY + 10;
             }
         }
 
