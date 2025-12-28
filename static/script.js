@@ -722,7 +722,7 @@ async function exportToPDF() {
         doc.text('Numerology Report', 105, yPos, { align: 'center' });
         yPos += 15;
 
-        // Personal Information
+        // ========== 1. Personal Information ==========
         doc.setFontSize(12);
         doc.setTextColor(0, 0, 0);
         doc.text(`Name: ${data.name}`, 20, yPos);
@@ -734,64 +734,8 @@ async function exportToPDF() {
         doc.text(`Gender: ${data.gender.charAt(0).toUpperCase() + data.gender.slice(1)}`, 20, yPos);
         yPos += 15;
 
-        // Main Numbers
-        doc.setFontSize(14);
-        doc.setTextColor(102, 126, 234);
-        doc.text('Your Numbers', 20, yPos);
-        yPos += 10;
-
-        doc.setFontSize(11);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`Driver Number: ${data.driver}`, 20, yPos);
-        yPos += 7;
-        doc.text(`Conductor Number: ${data.conductor}`, 20, yPos);
-        yPos += 7;
-        doc.text(`Kua Number: ${data.kua}`, 20, yPos);
-        yPos += 12;
-
-        // Present and Missing Numbers
-        doc.setFontSize(12);
-        doc.setTextColor(26, 89, 40);
-        doc.text('Present Numbers:', 20, yPos);
-        doc.setTextColor(0, 0, 0);
-        doc.text(data.present_numbers.join(', '), 70, yPos);
-        yPos += 8;
-
-        if (data.missing_numbers.length > 0) {
-            doc.setTextColor(211, 47, 47);
-            doc.text('Missing Numbers:', 20, yPos);
-            doc.setTextColor(0, 0, 0);
-            doc.text(data.missing_numbers.join(', '), 70, yPos);
-            yPos += 12;
-        }
-
-        // Lucky, Bad, Neutral Numbers
-        doc.setFontSize(14);
-        doc.setTextColor(102, 126, 234);
-        doc.text('Number Summary', 20, yPos);
-        yPos += 10;
-
-        doc.setFontSize(11);
-        doc.setTextColor(75, 175, 80);
-        doc.text('Lucky Numbers:', 20, yPos);
-        doc.setTextColor(0, 0, 0);
-        doc.text(data.lucky_numbers.join(', ') || 'None', 70, yPos);
-        yPos += 7;
-
-        doc.setTextColor(244, 67, 54);
-        doc.text('Bad Numbers:', 20, yPos);
-        doc.setTextColor(0, 0, 0);
-        doc.text(data.bad_numbers.join(', ') || 'None', 70, yPos);
-        yPos += 7;
-
-        doc.setTextColor(255, 152, 0);
-        doc.text('Neutral Numbers:', 20, yPos);
-        doc.setTextColor(0, 0, 0);
-        doc.text(data.neutral_numbers.join(', ') || 'None', 70, yPos);
-        yPos += 15;
-
-        // Loshu Grid Section
-        if (yPos > 220) {
+        // ========== 2. Loshu Grid Section ==========
+        if (yPos > 200) {
             doc.addPage();
             yPos = 20;
         }
@@ -801,15 +745,13 @@ async function exportToPDF() {
         doc.text('Your Personalized Loshu Grid', 20, yPos);
         yPos += 12;
 
-        // Draw Loshu Grid as a table
+        // Draw Loshu Grid as a table with custom rendering for count
         if (data.loshu_grid) {
             const gridData = [];
             data.loshu_grid.forEach(row => {
                 const rowData = row.map(cell => {
-                    if (cell.present) {
-                        return cell.count > 1 ? `${cell.value.charAt(0)} (×${cell.count})` : cell.value.toString();
-                    }
-                    return cell.value.toString();
+                    // Return base number only, we'll add count in didDrawCell
+                    return cell.value.toString().charAt(0);
                 });
                 gridData.push(rowData);
             });
@@ -819,7 +761,7 @@ async function exportToPDF() {
                 body: gridData,
                 theme: 'grid',
                 styles: {
-                    fontSize: 16,
+                    fontSize: 18,
                     cellWidth: 20,
                     cellPadding: 8,
                     halign: 'center',
@@ -853,13 +795,46 @@ async function exportToPDF() {
                         cellData.cell.styles.lineColor = [209, 213, 219];  // Gray border
                         cellData.cell.styles.lineWidth = 0.3;
                     }
+                },
+                didDrawCell: function(cellData) {
+                    // Add tiny multiplication count in top-right corner
+                    const rowIndex = cellData.row.index;
+                    const colIndex = cellData.column.index;
+                    const originalCell = data.loshu_grid[rowIndex] && data.loshu_grid[rowIndex][colIndex];
+
+                    if (originalCell && originalCell.present && originalCell.count > 1) {
+                        // Draw tiny "×N" in top-right corner
+                        doc.setFontSize(7);
+                        doc.setTextColor(180, 83, 9);
+                        doc.text(
+                            `×${originalCell.count}`,
+                            cellData.cell.x + cellData.cell.width - 4,
+                            cellData.cell.y + 4,
+                            { align: 'right' }
+                        );
+                    }
                 }
             });
 
-            yPos = doc.lastAutoTable.finalY + 10;
+            yPos = doc.lastAutoTable.finalY + 15;
         }
 
-        // Present and Missing Numbers
+        // ========== 3. Driver, Conductor, Kua Numbers ==========
+        doc.setFontSize(14);
+        doc.setTextColor(102, 126, 234);
+        doc.text('Your Numbers', 20, yPos);
+        yPos += 10;
+
+        doc.setFontSize(11);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Driver Number: ${data.driver}`, 20, yPos);
+        yPos += 7;
+        doc.text(`Conductor Number: ${data.conductor}`, 20, yPos);
+        yPos += 7;
+        doc.text(`Kua Number: ${data.kua}`, 20, yPos);
+        yPos += 15;
+
+        // ========== 4. Present and Missing Numbers ==========
         doc.setFontSize(11);
         doc.setTextColor(75, 175, 80);
         doc.text('Numbers Present in Your Life:', 20, yPos);
@@ -875,69 +850,7 @@ async function exportToPDF() {
             yPos += 15;
         }
 
-        // Loshu Grid Lines Section
-        if (data.loshu_lines && data.loshu_lines.all && data.loshu_lines.all.length > 0) {
-            if (yPos > 230) {
-                doc.addPage();
-                yPos = 20;
-            }
-
-            doc.setFontSize(14);
-            doc.setTextColor(102, 126, 234);
-            doc.text('Complete Lines in Your Loshu Grid', 20, yPos);
-            yPos += 10;
-
-            const linesData = [];
-            data.loshu_lines.all.forEach(line => {
-                const typeLabel = line.type.charAt(0).toUpperCase() + line.type.slice(1);
-                const numbersStr = line.numbers.join('-');
-                linesData.push([
-                    typeLabel,
-                    numbersStr,
-                    line.name,
-                    line.description
-                ]);
-            });
-
-            doc.autoTable({
-                startY: yPos,
-                head: [['Type', 'Numbers', 'Line Name', 'Description']],
-                body: linesData,
-                theme: 'striped',
-                styles: {
-                    fontSize: 9,
-                    cellPadding: 4
-                },
-                headStyles: {
-                    fillColor: [102, 126, 234],
-                    textColor: [255, 255, 255],
-                    fontStyle: 'bold'
-                },
-                columnStyles: {
-                    0: { cellWidth: 25, fontStyle: 'bold' },
-                    1: { cellWidth: 20, halign: 'center' },
-                    2: { cellWidth: 55 },
-                    3: { cellWidth: 85 }
-                },
-                didParseCell: function(cellData) {
-                    // Color code by type
-                    if (cellData.section === 'body' && cellData.column.index === 0) {
-                        const type = cellData.cell.raw.toLowerCase();
-                        if (type === 'diagonal') {
-                            cellData.cell.styles.textColor = [146, 64, 14];  // Amber
-                        } else if (type === 'vertical') {
-                            cellData.cell.styles.textColor = [30, 64, 175];  // Blue
-                        } else if (type === 'horizontal') {
-                            cellData.cell.styles.textColor = [6, 95, 70];    // Green
-                        }
-                    }
-                }
-            });
-
-            yPos = doc.lastAutoTable.finalY + 15;
-        }
-
-        // Number Compatibility Section
+        // ========== 5. Number Compatibility ==========
         if (yPos > 200) {
             doc.addPage();
             yPos = 20;
@@ -1014,6 +927,99 @@ async function exportToPDF() {
             yPos += 15;
         }
 
+        // ========== 6. Number Summary (Lucky, Bad, Neutral) ==========
+        if (yPos > 230) {
+            doc.addPage();
+            yPos = 20;
+        }
+
+        doc.setFontSize(14);
+        doc.setTextColor(102, 126, 234);
+        doc.text('Number Summary', 20, yPos);
+        yPos += 10;
+
+        doc.setFontSize(11);
+        doc.setTextColor(75, 175, 80);
+        doc.text('Lucky Numbers:', 20, yPos);
+        doc.setTextColor(0, 0, 0);
+        doc.text(data.lucky_numbers.join(', ') || 'None', 70, yPos);
+        yPos += 7;
+
+        doc.setTextColor(244, 67, 54);
+        doc.text('Bad Numbers:', 20, yPos);
+        doc.setTextColor(0, 0, 0);
+        doc.text(data.bad_numbers.join(', ') || 'None', 70, yPos);
+        yPos += 7;
+
+        doc.setTextColor(255, 152, 0);
+        doc.text('Neutral Numbers:', 20, yPos);
+        doc.setTextColor(0, 0, 0);
+        doc.text(data.neutral_numbers.join(', ') || 'None', 70, yPos);
+        yPos += 15;
+
+        // ========== 7. Complete Lines in Your Loshu Grid ==========
+        if (data.loshu_lines && data.loshu_lines.all && data.loshu_lines.all.length > 0) {
+            if (yPos > 200) {
+                doc.addPage();
+                yPos = 20;
+            }
+
+            doc.setFontSize(14);
+            doc.setTextColor(102, 126, 234);
+            doc.text('Complete Lines in Your Loshu Grid', 20, yPos);
+            yPos += 10;
+
+            const linesData = [];
+            data.loshu_lines.all.forEach(line => {
+                const typeLabel = line.type.charAt(0).toUpperCase() + line.type.slice(1);
+                const numbersStr = line.numbers.join('-');
+                linesData.push([
+                    typeLabel,
+                    numbersStr,
+                    line.name,
+                    line.description
+                ]);
+            });
+
+            doc.autoTable({
+                startY: yPos,
+                head: [['Type', 'Numbers', 'Line Name', 'Description']],
+                body: linesData,
+                theme: 'striped',
+                styles: {
+                    fontSize: 9,
+                    cellPadding: 4
+                },
+                headStyles: {
+                    fillColor: [102, 126, 234],
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold'
+                },
+                columnStyles: {
+                    0: { cellWidth: 25, fontStyle: 'bold' },
+                    1: { cellWidth: 20, halign: 'center' },
+                    2: { cellWidth: 55 },
+                    3: { cellWidth: 85 }
+                },
+                didParseCell: function(cellData) {
+                    // Color code by type
+                    if (cellData.section === 'body' && cellData.column.index === 0) {
+                        const type = cellData.cell.raw.toLowerCase();
+                        if (type === 'diagonal') {
+                            cellData.cell.styles.textColor = [146, 64, 14];  // Amber
+                        } else if (type === 'vertical') {
+                            cellData.cell.styles.textColor = [30, 64, 175];  // Blue
+                        } else if (type === 'horizontal') {
+                            cellData.cell.styles.textColor = [6, 95, 70];    // Green
+                        }
+                    }
+                }
+            });
+
+            yPos = doc.lastAutoTable.finalY + 15;
+        }
+
+        // ========== 8. Remedies for Missing Numbers ==========
         // Remedies Part 1
         if (yPos > 230) {
             doc.addPage();
@@ -1146,7 +1152,7 @@ async function exportToPDF() {
             yPos += 15;
         }
 
-        // Luck Factors
+        // ========== 10. Luck Factor - Next 6 Years ==========
         if (data.luck_factors && data.luck_factors.length > 0) {
             if (yPos > 200) {
                 doc.addPage();
@@ -1178,7 +1184,7 @@ async function exportToPDF() {
             yPos = doc.lastAutoTable.finalY + 15;
         }
 
-        // Name Numerology Analysis
+        // ========== 11. Name Numerology Analysis ==========
         if (data.name_analysis) {
             if (yPos > 220) {
                 doc.addPage();
@@ -1188,57 +1194,58 @@ async function exportToPDF() {
             doc.setFontSize(14);
             doc.setTextColor(102, 126, 234);
             doc.text('Name Numerology Analysis', 20, yPos);
-            yPos += 10;
+            yPos += 12;
 
             doc.setFontSize(11);
             doc.setTextColor(0, 0, 0);
             doc.text(`First Name: ${data.name_analysis.first_name} = ${data.name_analysis.first_name_value}`, 20, yPos);
-            yPos += 7;
+            yPos += 8;
             doc.text(`Full Name: ${data.name_analysis.full_name} = ${data.name_analysis.full_name_value}`, 20, yPos);
-            yPos += 12;
+            yPos += 15;
 
             // Followed rules
             if (data.name_analysis.followed_rules && data.name_analysis.followed_rules.length > 0) {
+                doc.setFontSize(12);
                 doc.setTextColor(75, 175, 80);
                 doc.text('✓ Rules Followed:', 20, yPos);
-                yPos += 7;
+                yPos += 8;
 
                 doc.setFontSize(10);
                 doc.setTextColor(0, 0, 0);
                 data.name_analysis.followed_rules.forEach(rule => {
-                    if (yPos > 270) {
+                    if (yPos > 265) {
                         doc.addPage();
                         yPos = 20;
                     }
-                    const lines = doc.splitTextToSize(`• ${rule.description}`, 170);
+                    const lines = doc.splitTextToSize(`• ${rule.description}`, 165);
                     doc.text(lines, 25, yPos);
-                    yPos += (lines.length * 5) + 3;
+                    yPos += (lines.length * 6) + 2;
                 });
-                yPos += 5;
+                yPos += 8;
             }
 
             // Contradicted rules
             if (data.name_analysis.contradicted_rules && data.name_analysis.contradicted_rules.length > 0) {
-                if (yPos > 250) {
+                if (yPos > 240) {
                     doc.addPage();
                     yPos = 20;
                 }
 
-                doc.setFontSize(11);
+                doc.setFontSize(12);
                 doc.setTextColor(244, 67, 54);
                 doc.text('✗ Rules Contradicted:', 20, yPos);
-                yPos += 7;
+                yPos += 8;
 
                 doc.setFontSize(10);
                 doc.setTextColor(0, 0, 0);
                 data.name_analysis.contradicted_rules.forEach(rule => {
-                    if (yPos > 270) {
+                    if (yPos > 265) {
                         doc.addPage();
                         yPos = 20;
                     }
-                    const lines = doc.splitTextToSize(`• ${rule.description}`, 170);
+                    const lines = doc.splitTextToSize(`• ${rule.description}`, 165);
                     doc.text(lines, 25, yPos);
-                    yPos += (lines.length * 5) + 3;
+                    yPos += (lines.length * 6) + 2;
                 });
             }
         }
