@@ -1198,16 +1198,18 @@ async function exportToPDF() {
 
             doc.setFontSize(11);
             doc.setTextColor(0, 0, 0);
-            doc.text(`First Name: ${data.name_analysis.first_name} = ${data.name_analysis.first_name_value}`, 20, yPos);
+            doc.text('First Name: ' + data.name_analysis.first_name + ' = ' + data.name_analysis.first_name_value, 20, yPos);
             yPos += 8;
-            doc.text(`Full Name: ${data.name_analysis.full_name} = ${data.name_analysis.full_name_value}`, 20, yPos);
+            doc.text('Full Name: ' + data.name_analysis.full_name + ' = ' + data.name_analysis.full_name_value, 20, yPos);
             yPos += 15;
 
             // Followed rules
             if (data.name_analysis.followed_rules && data.name_analysis.followed_rules.length > 0) {
-                doc.setFontSize(12);
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'bold');
                 doc.setTextColor(75, 175, 80);
-                doc.text('✓ Rules Followed:', 20, yPos);
+                doc.text('Rules Followed:', 20, yPos);
+                doc.setFont(undefined, 'normal');
                 yPos += 8;
 
                 doc.setFontSize(10);
@@ -1217,11 +1219,21 @@ async function exportToPDF() {
                         doc.addPage();
                         yPos = 20;
                     }
-                    const lines = doc.splitTextToSize(`• ${rule.description}`, 165);
-                    doc.text(lines, 25, yPos);
-                    yPos += (lines.length * 6) + 2;
+                    // Wrap text manually if needed
+                    const maxWidth = 165;
+                    const textLines = doc.splitTextToSize(rule.description, maxWidth - 5);
+
+                    // Draw bullet point
+                    doc.text('-', 23, yPos);
+
+                    // Draw text lines
+                    textLines.forEach((line, index) => {
+                        doc.text(line, 28, yPos + (index * 5));
+                    });
+
+                    yPos += (textLines.length * 5) + 3;
                 });
-                yPos += 8;
+                yPos += 6;
             }
 
             // Contradicted rules
@@ -1231,9 +1243,11 @@ async function exportToPDF() {
                     yPos = 20;
                 }
 
-                doc.setFontSize(12);
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'bold');
                 doc.setTextColor(244, 67, 54);
-                doc.text('✗ Rules Contradicted:', 20, yPos);
+                doc.text('Rules Contradicted:', 20, yPos);
+                doc.setFont(undefined, 'normal');
                 yPos += 8;
 
                 doc.setFontSize(10);
@@ -1243,9 +1257,19 @@ async function exportToPDF() {
                         doc.addPage();
                         yPos = 20;
                     }
-                    const lines = doc.splitTextToSize(`• ${rule.description}`, 165);
-                    doc.text(lines, 25, yPos);
-                    yPos += (lines.length * 6) + 2;
+                    // Wrap text manually if needed
+                    const maxWidth = 165;
+                    const textLines = doc.splitTextToSize(rule.description, maxWidth - 5);
+
+                    // Draw bullet point
+                    doc.text('-', 23, yPos);
+
+                    // Draw text lines
+                    textLines.forEach((line, index) => {
+                        doc.text(line, 28, yPos + (index * 5));
+                    });
+
+                    yPos += (textLines.length * 5) + 3;
                 });
             }
         }
