@@ -151,6 +151,9 @@ function displayResults(data) {
     populatePresentNumbers(data.present_numbers);
     populateMissingNumbers(data.missing_numbers);
 
+    // Populate Loshu Grid lines
+    populateLoshuLines(data.loshu_lines);
+
     // Populate compatibility sections
     populateCompatibility('driver', data.driver, data.driver_compatibility);
     populateCompatibility('conductor', data.conductor, data.conductor_compatibility);
@@ -229,6 +232,73 @@ function populateMissingNumbers(missingNumbers) {
         section.style.display = 'block';
     } else {
         section.style.display = 'none';
+    }
+}
+
+/**
+ * Populate Loshu Grid Lines
+ */
+function populateLoshuLines(loshuLines) {
+    const container = document.getElementById('linesContainer');
+    const section = document.getElementById('loshuLines');
+
+    container.innerHTML = '';
+
+    // Combine all complete lines
+    const allLines = loshuLines.all || [];
+
+    if (allLines.length > 0) {
+        allLines.forEach(line => {
+            const lineItem = document.createElement('div');
+            lineItem.className = `line-item ${line.type}`;
+
+            // Line header with name and type badge
+            const lineHeader = document.createElement('div');
+            lineHeader.className = 'line-header';
+
+            const lineName = document.createElement('div');
+            lineName.className = 'line-name';
+            lineName.textContent = line.name;
+
+            const lineType = document.createElement('span');
+            lineType.className = `line-type ${line.type}`;
+            lineType.textContent = line.type;
+
+            lineHeader.appendChild(lineName);
+            lineHeader.appendChild(lineType);
+
+            // Line numbers
+            const lineNumbers = document.createElement('div');
+            lineNumbers.className = 'line-numbers';
+
+            line.numbers.forEach(num => {
+                const badge = document.createElement('div');
+                badge.className = 'line-number-badge';
+                badge.textContent = num;
+                lineNumbers.appendChild(badge);
+            });
+
+            // Line description
+            const lineDesc = document.createElement('div');
+            lineDesc.className = 'line-description';
+            lineDesc.textContent = line.description;
+
+            // Assemble line item
+            lineItem.appendChild(lineHeader);
+            lineItem.appendChild(lineNumbers);
+            lineItem.appendChild(lineDesc);
+
+            container.appendChild(lineItem);
+        });
+
+        section.style.display = 'block';
+    } else {
+        // Show message if no lines are complete
+        const noLinesMsg = document.createElement('div');
+        noLinesMsg.className = 'no-lines-message';
+        noLinesMsg.textContent = 'No complete lines found in your Loshu Grid. Complete lines form when all numbers in a pattern are present.';
+        container.appendChild(noLinesMsg);
+        section.style.display = 'block';
     }
 }
 
@@ -762,19 +832,26 @@ async function exportToPDF() {
                     2: { cellWidth: 20 }
                 },
                 margin: { left: 75 },
-                didParseCell: function(data) {
-                    const rowIndex = data.row.index;
-                    const colIndex = data.column.index;
-                    const cell = doc.internal.lastAutoTable ?
-                        (gridData[rowIndex] && gridData[rowIndex][colIndex]) : '';
+                didParseCell: function(cellData) {
+                    const rowIndex = cellData.row.index;
+                    const colIndex = cellData.column.index;
 
-                    // Check if cell is present (has × or length > 1)
-                    if (cell && (cell.includes('×') || cell.length > 1)) {
-                        data.cell.styles.fillColor = [255, 250, 240];
-                        data.cell.styles.textColor = [154, 107, 0];
+                    // Get the original cell data from loshu_grid
+                    const originalCell = data.loshu_grid[rowIndex] && data.loshu_grid[rowIndex][colIndex];
+
+                    // Check if cell is present based on original data
+                    if (originalCell && originalCell.present) {
+                        // Present numbers - golden/amber color
+                        cellData.cell.styles.fillColor = [255, 243, 205];  // Light gold
+                        cellData.cell.styles.textColor = [180, 83, 9];     // Dark amber
+                        cellData.cell.styles.lineColor = [251, 191, 36];   // Gold border
+                        cellData.cell.styles.lineWidth = 0.5;
                     } else {
-                        data.cell.styles.fillColor = [245, 245, 245];
-                        data.cell.styles.textColor = [150, 150, 150];
+                        // Missing numbers - gray color
+                        cellData.cell.styles.fillColor = [243, 244, 246];  // Light gray
+                        cellData.cell.styles.textColor = [156, 163, 175];  // Medium gray
+                        cellData.cell.styles.lineColor = [209, 213, 219];  // Gray border
+                        cellData.cell.styles.lineWidth = 0.3;
                     }
                 }
             });
@@ -796,6 +873,68 @@ async function exportToPDF() {
             doc.setTextColor(0, 0, 0);
             doc.text(data.missing_numbers.join(', '), 90, yPos);
             yPos += 15;
+        }
+
+        // Loshu Grid Lines Section
+        if (data.loshu_lines && data.loshu_lines.all && data.loshu_lines.all.length > 0) {
+            if (yPos > 230) {
+                doc.addPage();
+                yPos = 20;
+            }
+
+            doc.setFontSize(14);
+            doc.setTextColor(102, 126, 234);
+            doc.text('Complete Lines in Your Loshu Grid', 20, yPos);
+            yPos += 10;
+
+            const linesData = [];
+            data.loshu_lines.all.forEach(line => {
+                const typeLabel = line.type.charAt(0).toUpperCase() + line.type.slice(1);
+                const numbersStr = line.numbers.join('-');
+                linesData.push([
+                    typeLabel,
+                    numbersStr,
+                    line.name,
+                    line.description
+                ]);
+            });
+
+            doc.autoTable({
+                startY: yPos,
+                head: [['Type', 'Numbers', 'Line Name', 'Description']],
+                body: linesData,
+                theme: 'striped',
+                styles: {
+                    fontSize: 9,
+                    cellPadding: 4
+                },
+                headStyles: {
+                    fillColor: [102, 126, 234],
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold'
+                },
+                columnStyles: {
+                    0: { cellWidth: 25, fontStyle: 'bold' },
+                    1: { cellWidth: 20, halign: 'center' },
+                    2: { cellWidth: 55 },
+                    3: { cellWidth: 85 }
+                },
+                didParseCell: function(cellData) {
+                    // Color code by type
+                    if (cellData.section === 'body' && cellData.column.index === 0) {
+                        const type = cellData.cell.raw.toLowerCase();
+                        if (type === 'diagonal') {
+                            cellData.cell.styles.textColor = [146, 64, 14];  // Amber
+                        } else if (type === 'vertical') {
+                            cellData.cell.styles.textColor = [30, 64, 175];  // Blue
+                        } else if (type === 'horizontal') {
+                            cellData.cell.styles.textColor = [6, 95, 70];    // Green
+                        }
+                    }
+                }
+            });
+
+            yPos = doc.lastAutoTable.finalY + 15;
         }
 
         // Number Compatibility Section

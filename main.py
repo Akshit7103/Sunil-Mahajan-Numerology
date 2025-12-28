@@ -25,6 +25,7 @@ from remedies import (
     calculate_remedies_part3
 )
 from name_numerology import validate_name_numerology
+from loshu_lines import analyze_loshu_lines
 
 app = FastAPI(title="Numerology Calculator API")
 
@@ -98,6 +99,9 @@ async def calculate_numerology(data: NumerologyInput):
             day, month, year, driver, conductor, kua
         )
 
+        # Analyze Loshu Grid lines (horizontal, vertical, diagonal)
+        loshu_lines = analyze_loshu_lines(present_numbers)
+
         # Get compatibility data
         driver_compatibility = COMPATIBILITY.get(driver, {})
         conductor_compatibility = COMPATIBILITY.get(conductor, {})
@@ -152,6 +156,7 @@ async def calculate_numerology(data: NumerologyInput):
             "loshu_grid": loshu_grid,
             "missing_numbers": missing_numbers,
             "present_numbers": present_numbers,
+            "loshu_lines": loshu_lines,
             "driver_compatibility": driver_compatibility,
             "conductor_compatibility": conductor_compatibility,
             "lucky_numbers": lucky_numbers,

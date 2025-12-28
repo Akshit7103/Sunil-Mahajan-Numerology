@@ -982,6 +982,139 @@ select:focus {
     display: block;
 }
 
+/* Loshu Grid Lines Section */
+.loshu-lines {
+    margin-top: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 12px;
+    border: 1px solid rgba(15,23,42,0.08);
+}
+
+.loshu-lines h4 {
+    margin-bottom: 15px;
+    color: #1e293b;
+    font-size: 1.1em;
+}
+
+.lines-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.line-item {
+    padding: 15px;
+    border-radius: 10px;
+    background: white;
+    border-left: 4px solid;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    transition: all 0.3s ease;
+}
+
+.line-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.line-item.diagonal {
+    border-left-color: #f59e0b;
+    background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+}
+
+.line-item.vertical {
+    border-left-color: #3b82f6;
+    background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+}
+
+.line-item.horizontal {
+    border-left-color: #10b981;
+    background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 100%);
+}
+
+.line-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.line-name {
+    font-weight: 600;
+    font-size: 1em;
+    color: #1e293b;
+}
+
+.line-type {
+    font-size: 0.75em;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.line-type.diagonal {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.line-type.vertical {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.line-type.horizontal {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.line-numbers {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.line-number-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.95em;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.line-item.diagonal .line-number-badge {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: white;
+}
+
+.line-item.vertical .line-number-badge {
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    color: white;
+}
+
+.line-item.horizontal .line-number-badge {
+    background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+    color: white;
+}
+
+.line-description {
+    font-size: 0.9em;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.no-lines-message {
+    text-align: center;
+    padding: 30px;
+    color: #64748b;
+    font-style: italic;
+}
+
 @media (max-width: 600px) {
     .header h1 {
         font-size: 1.8em;
