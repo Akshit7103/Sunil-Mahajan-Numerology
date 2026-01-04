@@ -1203,7 +1203,7 @@ async function exportToPDF() {
             doc.text('Full Name: ' + data.name_analysis.full_name + ' = ' + data.name_analysis.full_name_value, 20, yPos);
             yPos += 12;
 
-            // Followed rules - using table format for consistent rendering
+            // Followed rules - using direct text rendering for proper formatting
             if (data.name_analysis.followed_rules && data.name_analysis.followed_rules.length > 0) {
                 if (yPos > 230) {
                     doc.addPage();
@@ -1215,37 +1215,27 @@ async function exportToPDF() {
                 doc.setTextColor(75, 175, 80);
                 doc.text('Rules Followed:', 20, yPos);
                 doc.setFont(undefined, 'normal');
-                yPos += 8;
+                yPos += 10;
 
-                const followedData = data.name_analysis.followed_rules.map(rule => [rule.description]);
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
 
-                doc.autoTable({
-                    startY: yPos,
-                    body: followedData,
-                    theme: 'plain',
-                    styles: {
-                        fontSize: 10,
-                        cellPadding: 2,
-                        textColor: [0, 0, 0]
-                    },
-                    columnStyles: {
-                        0: { cellWidth: 165 }
-                    },
-                    margin: { left: 25 },
-                    didDrawCell: function(data) {
-                        // Draw bullet point before each row
-                        if (data.section === 'body' && data.column.index === 0) {
-                            doc.setFontSize(10);
-                            doc.setTextColor(0, 0, 0);
-                            doc.text('-', data.cell.x - 5, data.cell.y + 4);
-                        }
+                data.name_analysis.followed_rules.forEach(rule => {
+                    if (yPos > 270) {
+                        doc.addPage();
+                        yPos = 20;
                     }
+
+                    // Split text to handle long descriptions
+                    const ruleText = doc.splitTextToSize('- ' + rule.description, 165);
+                    doc.text(ruleText, 25, yPos);
+                    yPos += (ruleText.length * 5) + 3;
                 });
 
-                yPos = doc.lastAutoTable.finalY + 10;
+                yPos += 5;
             }
 
-            // Contradicted rules - using table format for consistent rendering
+            // Contradicted rules - using direct text rendering for proper formatting
             if (data.name_analysis.contradicted_rules && data.name_analysis.contradicted_rules.length > 0) {
                 if (yPos > 230) {
                     doc.addPage();
@@ -1257,34 +1247,24 @@ async function exportToPDF() {
                 doc.setTextColor(244, 67, 54);
                 doc.text('Rules Contradicted:', 20, yPos);
                 doc.setFont(undefined, 'normal');
-                yPos += 8;
+                yPos += 10;
 
-                const contradictedData = data.name_analysis.contradicted_rules.map(rule => [rule.description]);
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
 
-                doc.autoTable({
-                    startY: yPos,
-                    body: contradictedData,
-                    theme: 'plain',
-                    styles: {
-                        fontSize: 10,
-                        cellPadding: 2,
-                        textColor: [0, 0, 0]
-                    },
-                    columnStyles: {
-                        0: { cellWidth: 165 }
-                    },
-                    margin: { left: 25 },
-                    didDrawCell: function(data) {
-                        // Draw bullet point before each row
-                        if (data.section === 'body' && data.column.index === 0) {
-                            doc.setFontSize(10);
-                            doc.setTextColor(0, 0, 0);
-                            doc.text('-', data.cell.x - 5, data.cell.y + 4);
-                        }
+                data.name_analysis.contradicted_rules.forEach(rule => {
+                    if (yPos > 270) {
+                        doc.addPage();
+                        yPos = 20;
                     }
+
+                    // Split text to handle long descriptions
+                    const ruleText = doc.splitTextToSize('- ' + rule.description, 165);
+                    doc.text(ruleText, 25, yPos);
+                    yPos += (ruleText.length * 5) + 3;
                 });
 
-                yPos = doc.lastAutoTable.finalY + 10;
+                yPos += 5;
             }
         }
 

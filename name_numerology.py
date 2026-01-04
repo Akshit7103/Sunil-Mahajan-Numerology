@@ -2,7 +2,7 @@
 Name numerology calculations and validation rules
 """
 from typing import List, Dict, Any, Tuple, Set
-from data import ALPHABET_VALUES
+from data import ALPHABET_VALUES, COMPATIBILITY
 from calculations import sum_digits_to_single
 
 
@@ -95,16 +95,17 @@ def validate_name_numerology(
         })
 
     # Rule 5: First name should NOT be anti (bad number) to driver number
-    if first_name_value not in bad_numbers:
+    driver_non_friends = COMPATIBILITY.get(driver, {}).get('non_friends', [])
+    if first_name_value not in driver_non_friends:
         followed_rules.append({
             "rule": "Rule 5",
-            "description": f"First name total ({first_name_value}) is not a bad number for your driver ✓",
+            "description": f"First name total ({first_name_value}) is not anti to driver {driver} ✓",
             "status": "good"
         })
     else:
         contradicted_rules.append({
             "rule": "Rule 5",
-            "description": f"First name total ({first_name_value}) is a bad number for driver {driver}",
+            "description": f"First name total ({first_name_value}) is anti to driver {driver}",
             "status": "bad",
             "severity": "high"
         })
